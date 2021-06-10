@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  user_api:
+    build: user-api/.
+    env_file:
+      - user-api/.env.api
+      - user-api/.env.db
+    ports:
+      - "8081:8000"
+    depends_on:
+      - user_db
+
+  user_db:
+    image: mongo
+    restart: always
+    env_file:
+      - user-api/.env.db
+      - user-api/.env.api
+
+
+  carbon_api:
+    build: carbon-api/.
+    env_file:
+      - carbon-api/.env.api
+      - carbon-api/.env.db
+    ports:
+      - "8082:8000"
+    depends_on:
+      - carbon_db
+
+  carbon_db:
+    image: mongo
+    env_file:
+      - carbon-api/.env.db
+    restart: always
+    ports:
+      - "27017:27017"
+
