@@ -1,37 +1,18 @@
 from datetime import datetime
 from typing import Optional, List
 from fastapi import FastAPI, status, Path, Body, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from .models import (
+
+from models import (
     StatusOkModel, UsageCreateModel, UsageResponseModel,
     UsageStorageModel, PyObjectId, UsageUpdateModel
 )
-from .db import (get_usage_type, list_usages_for_user, retrieve_usage,
-                 add_usage, update_usage, delete_usage)
-from .errors import ResourceNotFoundException
-from .auth import validate_token, TokenData
+from db import (get_usage_type, list_usages_for_user, retrieve_usage,
+                add_usage, update_usage, delete_usage)
+from errors import ResourceNotFoundException
+from auth import validate_token, TokenData
 
 
 app = FastAPI()
-
-
-# CORS Origins.
-origins = [
-    "http://api.planetly.com",
-    "https://planetly.com",
-    "http://localhost",
-]
-
-# For usage as a nice little microservice, we would like to
-# access authentication from other services too. This is why we need to
-# set CORS.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @app.get("/protected", response_model=StatusOkModel)
