@@ -75,8 +75,6 @@ async def record(usage: UsageCreateModel = Body(...),
 async def get_one(id: PyObjectId = Path(...),
                   token: TokenData = Depends(validate_token)):
     """Return the specific usage object."""
-
-    # TODO: check of user
     resp = await retrieve_usage(id, token)
     if not resp:
         raise HTTPException(
@@ -88,12 +86,11 @@ async def get_one(id: PyObjectId = Path(...),
 
 @app.put("/usages/{id}", response_model=UsageResponseModel)
 async def modify(id: PyObjectId = Path(...),
-                 usage: UsageUpdateModel = Body(...)):
+                 usage: UsageUpdateModel = Body(...),
+                 token: TokenData = Depends(validate_token)):
     """Modify an existing usage resource"""
-    # TODO: check for user
-
+    resolved_type = None
     if usage.usage_type_id:
-        # TODO: refactor and extract function
         resolved_type = await get_usage_type(usage.usage_type_id)
         if not resolved_type:
             raise HTTPException(
@@ -106,7 +103,7 @@ async def modify(id: PyObjectId = Path(...),
     )
 
     try:
-        response = await update_usage(id, updated_fields)
+        response = await update_usage(id, updated_fields, token)
     except ResourceNotFoundException:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

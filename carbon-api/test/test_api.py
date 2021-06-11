@@ -171,7 +171,7 @@ class TestCrudCase(unittest.TestCase):
         This tests is checking for BOLA.
         """
         # 0. create mallory-user
-        mallory_token = _get_auth_token()
+        mallory_header = {"Authorization": f"Bearer {_get_auth_token()}"}
 
         # 1. Alice creates usage
         response = client.post(
@@ -188,11 +188,21 @@ class TestCrudCase(unittest.TestCase):
         # 2. Mallory tries to access Alices usage
         get_res = client.get(
             f'/usages/{alice_resource_id}',
-            headers={"Authorization": f"Bearer {mallory_token}"}
+            headers=mallory_header
         )
         # If we did it right, Mallory should not be able to access
         # Alice resouce
         self.assertEqual(get_res.status_code, 404)
+
+        # 3. Also, updating a foreign resource should not be possible
+        patch_res = client.put(
+            f'/usages/{alice_resource_id}',
+            headers=mallory_header,
+            json={
+                "usage": 666
+            }
+        )
+        self.assertEqual(patch_res.status_code, 404)
 
 
 if __name__ == "__main__":
