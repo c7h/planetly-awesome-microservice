@@ -72,11 +72,12 @@ async def record(usage: UsageCreateModel = Body(...),
 
 
 @app.get("/usages/{id}", response_model=UsageResponseModel)
-async def get_one(id: PyObjectId = Path(...)):
+async def get_one(id: PyObjectId = Path(...),
+                  token: TokenData = Depends(validate_token)):
     """Return the specific usage object."""
 
     # TODO: check of user
-    resp = await retrieve_usage(id)
+    resp = await retrieve_usage(id, token)
     if not resp:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -164,6 +164,36 @@ class TestCrudCase(unittest.TestCase):
         self.assertEqual(len(get_res.json()), 5)
 
 
+    def test_get_foreign_access(self):
+        """One of the most damaging vulns on REST API these days is 
+        Broken Object Level Authorization - or short BOLA
+        https://owasp.org/www-project-api-security/
+        This tests is checking for BOLA.
+        """
+        # 0. create mallory-user
+        mallory_token = _get_auth_token()
+
+        # 1. Alice creates usage
+        response = client.post(
+            "/usages",
+            headers=self.auth_header,
+            json={
+                "amount": 1312,
+                "usage_type_id": 100
+            }
+        )
+        self.assertEqual(response.status_code, 201)
+        alice_resource_id = response.json().get('_id')
+
+        # 2. Mallory tries to access Alices usage
+        get_res = client.get(
+            f'/usages/{alice_resource_id}',
+            headers={"Authorization": f"Bearer {mallory_token}"}
+        )
+        # If we did it right, Mallory should not be able to access
+        # Alice resouce
+        self.assertEqual(get_res.status_code, 404)
+
 
 if __name__ == "__main__":
     TestCrudCase.run()
