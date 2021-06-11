@@ -7,8 +7,8 @@ import motor.motor_asyncio
 This helper script adds default values
 to the database.
 """
-mongo_host = os.getenv('MONGO_HOST')
-mongo_port = os.getenv('MONGO_PORT')
+mongo_host = os.getenv('MONGO_HOST', 'localhost')
+mongo_port = int(os.getenv('MONGO_PORT', '27017'))
 
 DATABASE_URL = f"mongodb://{mongo_host}:{mongo_port}"
 
@@ -52,7 +52,6 @@ type_data = [
     }
 ]
 
-await database.
 async def insert_types():
     return await usage_type_collection.insert_many(type_data)
 
