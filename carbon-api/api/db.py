@@ -1,9 +1,9 @@
 import os
 from bson.objectid import ObjectId
 import motor.motor_asyncio
-from .models import UsageStorageModel
-from .errors import ResourceNotFoundException
-from .auth import TokenData
+from models import UsageStorageModel
+from errors import ResourceNotFoundException
+from auth import TokenData
 
 
 mongo_host = os.getenv('MONGO_HOST')
@@ -39,14 +39,16 @@ async def add_usage(usage_data: UsageStorageModel) -> dict:
     return await usage_collection.find_one({"_id": usage.inserted_id})
 
 
-async def retrieve_usage(id: ObjectId) -> dict:
+async def retrieve_usage(id: ObjectId, token: TokenData) -> dict:
     """Retrieve a usage with a matching ID"""
-    return await usage_collection.find_one({"_id": id})
+    return await usage_collection.find_one(
+        {"_id": id, "user_id": token.user_id})
 
 
-async def update_usage(id: ObjectId, data: dict) -> dict:
+async def update_usage(id: ObjectId, data: dict, token: TokenData) -> dict:
     """Update certain values and return the new object"""
-    usage = await usage_collection.find_one({"_id": id})
+    usage = await usage_collection.find_one(
+        {"_id": id, "user_id": token.user_id})
     if not usage:
         # usage not found in DB
         raise ResourceNotFoundException("Resource not found in DB")
