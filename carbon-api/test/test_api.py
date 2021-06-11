@@ -24,7 +24,7 @@ SECRET = os.getenv('SECRET')
 
 # Load & prepare SUT
 from api.api import app
-from api.models import UsageResponseModel
+from api.models import UsageResponseModel, UsageTypeModel
 client = TestClient(app)
 
 
@@ -163,7 +163,6 @@ class TestCrudCase(unittest.TestCase):
         # amount of resources should match created
         self.assertEqual(len(get_res.json()), 5)
 
-
     def test_get_foreign_access(self):
         """One of the most damaging vulns on REST API these days is 
         Broken Object Level Authorization - or short BOLA
@@ -204,6 +203,13 @@ class TestCrudCase(unittest.TestCase):
         )
         self.assertEqual(patch_res.status_code, 404)
 
+    def test_get_all_types(self):
+        # 1. Get 2 types from the usage list (make sure it's full)
+        res = client.get(
+            '/types',
+            query_params={'limit': 2}
+        )
+        self.assertEqual(len(res.json()), 2)
 
 if __name__ == "__main__":
     TestCrudCase.run()

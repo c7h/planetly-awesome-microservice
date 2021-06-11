@@ -26,6 +26,13 @@ async def get_usage_type(usage_type_id: int):
     return await usage_type_collection.find_one({"id": usage_type_id})
 
 
+async def get_all_usage_types(limit: int, offset: int):
+    """Get all usage types"""
+    cursor = usage_type_collection.find().limit(limit).skip(offset)
+    items = await cursor.to_list(limit)
+    return items
+
+
 async def list_usages_for_user(user_id: int, limit: int, offset: int):
     """Retrieve all usages present in the database for a certain user"""
     cursor = usage_collection.find({"user_id": str(user_id)}).limit(limit).skip(offset)

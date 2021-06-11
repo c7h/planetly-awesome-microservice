@@ -4,23 +4,16 @@ from fastapi import FastAPI, status, Path, Body, HTTPException, Depends
 
 from models import (
     StatusOkModel, UsageCreateModel, UsageResponseModel,
-    UsageStorageModel, PyObjectId, UsageUpdateModel
+    UsageStorageModel, PyObjectId, UsageUpdateModel, UsageTypeModel
 )
 from db import (get_usage_type, list_usages_for_user, retrieve_usage,
-                add_usage, update_usage, delete_usage)
+                add_usage, update_usage, delete_usage, get_all_usage_types)
 from errors import ResourceNotFoundException
 from auth import validate_token, TokenData
 
 
 app = FastAPI()
 
-
-@app.get("/protected", response_model=StatusOkModel)
-async def read_users_me(token: TokenData = Depends(validate_token)):
-    return {
-        "msg": "logged in",
-        "detail": token.dict()
-    }
 
 # CRUD operations here...
 
@@ -125,3 +118,9 @@ async def get_users(limit: Optional[int] = 10, offset: Optional[int] = 0,
         offset=offset
     )
     return res
+
+
+@app.get("/types", response_model=List[UsageTypeModel])
+async def get_types(limit: Optional[int] = 10, offset: Optional[int] = 0):
+    all_types = await get_all_usage_types(limit, offset)
+    return all_types
