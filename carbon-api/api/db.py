@@ -3,6 +3,8 @@ from bson.objectid import ObjectId
 import motor.motor_asyncio
 from .models import UsageStorageModel
 from .errors import ResourceNotFoundException
+from .auth import TokenData
+
 
 mongo_host = os.getenv('MONGO_HOST')
 mongo_port = os.getenv('MONGO_PORT')
@@ -61,6 +63,17 @@ async def update_usage(id: ObjectId, data: dict) -> dict:
 async def delete_usage(id: ObjectId) -> int:
     """Delete usage from the database"""
     usage = await usage_collection.find_one({"_id": id})
+    if not usage:
+        raise ResourceNotFoundException("Resource not found in DB")
+    res = await usage_collection.delete_one({"_id": id})
+    return res.deleted_count
+
+
+async def delete_usage_for_user(id: ObjectId, token: TokenData):
+    """Delete usage but only if users also owns the resource"""
+    usage = await usage_collection.find_one(
+        {"_id": id, "user_id": token.user_id}
+    )
     if not usage:
         raise ResourceNotFoundException("Resource not found in DB")
     res = await usage_collection.delete_one({"_id": id})

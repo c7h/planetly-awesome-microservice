@@ -3,7 +3,6 @@ import os
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
-from typing import Optional
 from jose import JWTError, jwt
 
 SECRET_KEY = os.getenv("SECRET")
@@ -13,6 +12,7 @@ AUDIENCE = "fastapi-users:auth"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=os.getenv("AUTH_ENDPOINT"))
 
 
+# TODO: refactor: move TokenData to .models
 class TokenData(BaseModel):
     user_id: str = ...
 

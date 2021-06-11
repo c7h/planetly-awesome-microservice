@@ -39,7 +39,6 @@ class UsageUpdateModel(BaseModel):
 
 class UsageModel(BaseModel):
     """Base Model of a usage object"""
-    user_id: str
     amount: float
 
 
@@ -50,6 +49,7 @@ class UsageCreateModel(UsageModel):
 
 class UsageStorageModel(UsageModel):
     """How data is stored in the database"""
+    user_id: str
     usage_type: UsageTypeModel
     usage_at: datetime
 

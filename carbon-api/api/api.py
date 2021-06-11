@@ -38,7 +38,7 @@ app.add_middleware(
 async def read_users_me(token: TokenData = Depends(validate_token)):
     return {
         "msg": "logged in",
-        "details": token.dict()
+        "detail": token.dict()
     }
 
 # CRUD operations here...
@@ -46,8 +46,10 @@ async def read_users_me(token: TokenData = Depends(validate_token)):
 @app.post("/usages", response_description="record new usage",
           response_model=UsageResponseModel,
           status_code=status.HTTP_201_CREATED)
-async def record(usage: UsageCreateModel = Body(...)):
+async def record(usage: UsageCreateModel = Body(...),
+                 token: TokenData = Depends(validate_token)):
     """Add a new carbon record to the database"""
+
     # resolve usage type
     resolved_type = await get_usage_type(usage.usage_type_id)
     if not resolved_type:
@@ -55,11 +57,13 @@ async def record(usage: UsageCreateModel = Body(...)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="The provided usage type is unknown."
         )
+
     new_item = UsageStorageModel.parse_obj(
         {
             **usage.dict(),
             "usage_at": datetime.utcnow(),
-            "usage_type": resolved_type
+            "usage_type": resolved_type,
+            "user_id": token.user_id
         }
      )
 
@@ -70,6 +74,8 @@ async def record(usage: UsageCreateModel = Body(...)):
 @app.get("/usages/{id}", response_model=UsageResponseModel)
 async def get_one(id: PyObjectId = Path(...)):
     """Return the specific usage object."""
+
+    # TODO: check of user
     resp = await retrieve_usage(id)
     if not resp:
         raise HTTPException(
@@ -83,6 +89,7 @@ async def get_one(id: PyObjectId = Path(...)):
 async def modify(id: PyObjectId = Path(...),
                  usage: UsageUpdateModel = Body(...)):
     """Modify an existing usage resource"""
+    # TODO: check for user
 
     if usage.usage_type_id:
         # TODO: refactor and extract function
@@ -110,8 +117,11 @@ async def modify(id: PyObjectId = Path(...),
 
 @app.delete("/usages/{id}", status_code=status.HTTP_200_OK,
             response_model=StatusOkModel)
-async def delete(id: PyObjectId = Path(...)):
+async def delete(id: PyObjectId = Path(...),
+                 token: TokenData = Depends(validate_token)):
     """Delete an exising usage resource"""
+
+    # TODO: check for user
     try:
         deleted_cnt = await delete_usage(id)
     except ResourceNotFoundException:
@@ -127,7 +137,12 @@ async def delete(id: PyObjectId = Path(...)):
 
 
 @app.get("/usages", response_model=List[UsageResponseModel])
-async def get_users(limit: Optional[int] = 10, offset: Optional[int] = 0):
+async def get_users(limit: Optional[int] = 10, offset: Optional[int] = 0,
+                    token: TokenData = Depends(validate_token)):
 
-    res = await list_usages_for_user(user_id=12, limit=limit, offset=offset)
+    res = await list_usages_for_user(
+        user_id=token.user_id,
+        limit=limit,
+        offset=offset
+    )
     return res
